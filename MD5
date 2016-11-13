@@ -1,0 +1,14 @@
+d1502d4f459b8503c53bcd16b7c75cbe *DESCRIPTION
+be73bdedab63219e384609bfb70de9f9 *NAMESPACE
+d904d5de54beecb1c09d1ef6891293a8 *NEWS.md
+389d6571df9754b65b1dccb91434f37e *R/naptime-internal.R
+fc8949d61a1733aa99eca9bf32c194af *R/naptime.R
+4a7dd699461fa328f07b7f5c122c682d *README.md
+feb4c9298643f3568170fe4e8acbf886 *build/vignette.rds
+3b24062592487f32f984dcfc94eb2ef4 *inst/doc/naptime.R
+e266e710ebfcf1879fcff3421fee5656 *inst/doc/naptime.Rmd
+6b2158e2508952052591611c6f0617c3 *inst/doc/naptime.html
+9aa9884c0a9f93b5efcfd9e5a4c099b2 *man/naptime.Rd
+bcdc936fa24ae2ad017e60660cb8a2f7 *tests/testthat.R
+b3e5b5ca532effb85bb85da945705eae *tests/testthat/test-naptime.R
+e266e710ebfcf1879fcff3421fee5656 *vignettes/naptime.Rmd
