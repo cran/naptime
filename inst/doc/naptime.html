@@ -12,9 +12,9 @@
 
 <meta name="author" content="Russell S. Pierce &amp; Timothy Gann" />
 
-<meta name="date" content="2016-11-12" />
+<meta name="date" content="2016-11-30" />
 
-<title>naptime: A Robust Flexible Sys.sleep() Replacement</title>
+<title>naptime: A Flexible and Robust Sys.sleep() Replacement</title>
 
 
 
@@ -68,81 +68,114 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 
 
-<h1 class="title toc-ignore">naptime: A Robust Flexible Sys.sleep() Replacement</h1>
+<h1 class="title toc-ignore">naptime: A Flexible and Robust Sys.sleep() Replacement</h1>
 <h4 class="author"><em>Russell S. Pierce &amp; Timothy Gann</em></h4>
-<h4 class="date"><em>2016-11-12</em></h4>
+<h4 class="date"><em>2016-11-30</em></h4>
 
 
 
-<pre><code>## 
-## Attaching package: 'lubridate'</code></pre>
-<pre><code>## The following object is masked from 'package:base':
-## 
-##     date</code></pre>
-<div id="naptime-a-robust-flexible-sys.sleep-replacement" class="section level1">
-<h1>naptime: A Robust Flexible Sys.sleep Replacement</h1>
 <div id="why-should-i-use-it" class="section level2">
 <h2>Why should I use it?</h2>
-<p>The premise of naptime is two fold.</p>
-<ol style="list-style-type: decimal">
-<li>Delays in R code should never result in an error.</li>
-<li>Functions should accept multiple inputs types, but result in a single output type.</li>
-</ol>
-<p>In response to these considerations <code>naptime::naptime()</code> either sleeps for the specified duration, or passes forward with a warning. It has the same argument name as <code>base::Sys.sleep()</code> and a nearly identical behavior in response to numeric inputs. As such, it can be nearly used as a drop-in replacement for <code>base::Sys.sleep()</code>.</p>
-<p>The one notable exception to identical behavior is the input value of <code>Inf</code>. <code>base::Sys.sleep()</code> will sleep indefiniately in reponse to <code>Inf</code>. In contrast, <code>naptime::naptime()</code> will sleep the default duration.</p>
+<p>naptime makes delaying code execution in R more flexible and robust. It makes delaying code execution more flexible by supporting more data types than <code>base::Sys.sleep()</code>. It makes delaying code more robust by allowing errors in the delay specification to throw warnings instead of errors. Most notably, because naptime supports more input data types, you can use package:lubridate functions in conjunction with naptime to yield human readable time delays and intervals.</p>
+<p>Consider the case of waiting one hour:</p>
+<pre><code>Sys.sleep(3600)
+
+# versus
+
+naptime(lubridate::hours(1))</code></pre>
+<p>Consider the case of wanting to start processing every hour for a job of an indeterminate duration:</p>
+<pre><code>repeat{
+  start_time &lt;- lubridate::now()
+  # Do processing
+  sleep_duration &lt;- 3600 - as.numeric(lubridate::now() - start_time)
+  if (sleep_duration &gt; 0) {
+    Sys.sleep(sleep_duration)
+  }
+}
+
+# versus
+
+repeat{
+  start_time &lt;- lubridate::now()
+  # Do processing
+  naptime(start_time + hours(1))
+}</code></pre>
 </div>
 <div id="how-do-i-use-it" class="section level2">
 <h2>How do I use it?</h2>
+<p>Because <code>naptime()</code> has nearly identical arguments and behavior as <code>base::Sys.sleep()</code> in response to numeric inputs, it can be nearly used as a drop-in replacement for <code>base::Sys.sleep()</code>.</p>
+<p>There are two notable differences in the behavior of Sys.sleep() and naptime():</p>
+<ul>
+<li>For the input value of <code>Inf</code> <code>base::Sys.sleep()</code> will sleep indefinitely. In contrast, <code>naptime::naptime()</code> will produce an error (or if <code>naptime.permissive = TRUE</code> is set pause the default duration).</li>
+<li>For a negative input value <code>base::Sys.sleep()</code> will produce an error. In contrast, <code>naptime::naptime()</code> will assume that the period of delay has already elapsed and move forward without further delay.</li>
+</ul>
 <div id="options" class="section level3">
 <h3>Options</h3>
 <p>All options are set via <code>base::options()</code>.</p>
 <ul>
 <li><code>naptime.default_delay</code>. If left unchanged, the default delay is <code>.1</code> seconds.</li>
 <li><code>naptime.warnings</code>. If left unchanged, the default is <code>TRUE</code>, to show warnings.</li>
+<li><code>naptime.permissive</code>. If left unchanged, the default is <code>FALSE</code>, to trigger errors on inputs that couldn’t be converted into something sensible. If set TRUE, inputs that couldn’t be converted into something sensible will result in a default delay.</li>
 </ul>
 </div>
 <div id="polymorphic-inputs" class="section level3">
 <h3>Polymorphic inputs</h3>
 <p>naptime() accepts a wide variety of inputs.</p>
+<p>Polymorphism for:</p>
 <ul>
-<li>Polymorphism for:</li>
 <li>numeric: time in seconds to nap</li>
 </ul>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">naptime</span>(<span class="dv">1</span>)</code></pre></div>
-<ul>
-<li>NULL</li>
-</ul>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">naptime</span>(<span class="ot">NULL</span>)
-<span class="co">#&gt; Warning in nap_warn(&quot;NULL passed to naptime(), sleeping for .Options</span>
-<span class="co">#&gt; $naptime.default_delay seconds.&quot;): NULL passed to naptime(), sleeping</span>
-<span class="co">#&gt; for .Options$naptime.default_delay seconds.</span>
-<span class="co">#&gt; [1] 0.1</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">naptime</span>(<span class="dv">1</span>)
+<span class="co">#&gt; NULL</span></code></pre></div>
 <ul>
 <li>POSIXct: time at which the nap should stop (timezone is respected)</li>
 </ul>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">naptime</span>(lubridate::<span class="kw">now</span>(<span class="dt">tzone =</span> <span class="st">&quot;UTC&quot;</span>)+lubridate::<span class="kw">seconds</span>(<span class="dv">1</span>))</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">naptime</span>(lubridate::<span class="kw">now</span>(<span class="dt">tzone =</span> <span class="st">&quot;UTC&quot;</span>)+lubridate::<span class="kw">seconds</span>(<span class="dv">1</span>))
+<span class="co">#&gt; NULL</span></code></pre></div>
 <ul>
 <li>Period: time from now at which the nap should stop</li>
 </ul>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">naptime</span>(lubridate::<span class="kw">seconds</span>(<span class="dv">1</span>))</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">naptime</span>(lubridate::<span class="kw">seconds</span>(<span class="dv">1</span>))
+<span class="co">#&gt; NULL</span></code></pre></div>
 <ul>
-<li>character: ymd_hms at which nap should stop, time zone is assumed to be device local</li>
+<li>character: A single character string formatted YYYY-MM-DD HH:MM:SS at which the nap should stop. The time zone is assumed to be device local. The hour, minute, and second do not need to be specified.</li>
 </ul>
-<p><code>r  naptime(as.character(lubridate::now() + lubridate::seconds(1)))</code> * difftime: difference in time to nap</p>
-<p><code>r  naptime(difftime(lubridate::now() + seconds(1), lubridate::now()))</code> * logical: nap for default duration</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">naptime</span>(<span class="kw">as.character</span>(lubridate::<span class="kw">now</span>() +<span class="st"> </span>lubridate::<span class="kw">seconds</span>(<span class="dv">1</span>)))
+<span class="co">#&gt; NULL</span></code></pre></div>
+<ul>
+<li>difftime: difference in time to nap</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">naptime</span>(<span class="kw">difftime</span>(lubridate::<span class="kw">now</span>() +<span class="st"> </span>lubridate::<span class="kw">seconds</span>(<span class="dv">1</span>), lubridate::<span class="kw">now</span>()))
+<span class="co">#&gt; NULL</span></code></pre></div>
+<ul>
+<li>logical: nap for default duration if TRUE, skip nap if FALSE</li>
+</ul>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">naptime</span>(<span class="ot">TRUE</span>)
-<span class="co">#&gt; Warning in nap_warn(&quot;Logical passed to naptime(), sleeping for 0</span>
-<span class="co">#&gt; seconds.&quot;): Logical passed to naptime(), sleeping for 0 seconds.</span>
-<span class="co">#&gt; [1] 0.1</span></code></pre></div>
+<span class="co">#&gt; NULL</span></code></pre></div>
 <ul>
-<li>generic: nap for default duration</li>
+<li>NULL; meaning no delay</li>
 </ul>
-<p><code>r  naptime(glm(rnorm(5) ~ rnorm(5)))  #&gt; Warning in model.matrix.default(mt, mf, contrasts): the response appeared  #&gt; on the right-hand side and was dropped  #&gt; Warning in model.matrix.default(mt, mf, contrasts): problem with term 1 in  #&gt; model.matrix: no columns are assigned  #&gt; Warning in nap_warn(&quot;unhandled input for naptime: &quot;, as.character(e), &quot;; sleeping for default duration&quot;): unhandled input for naptime: Error in (function (classes, fdef, mtable) : unable to find an inherited method for function 'naptime' for signature '&quot;glm&quot;'  #&gt; ; sleeping for default duration  #&gt; [1] 0.1</code> If you find a reasonable input-type for which <code>naptime::naptime()</code> doesn’t have a reasonable response, please file <a href="https://github.com/drknexus/naptime/issues">an issue</a>.</p>
-<p>In addition, naptime will handle some specific errors: * All negative intervals will be converted to a delay of 0 * All non-finite intervals will be converted to a default delay * All inputs that produce an error will be converted to a default delay</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">naptime</span>(<span class="ot">NULL</span>)
+<span class="co">#&gt; NULL</span></code></pre></div>
+<ul>
+<li>generic: By default this produces an error, however, you can set <code>naptime.permissive</code> as an option (or argument) that will cause this to nap for default duration instead.</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">naptime</span>(<span class="kw">glm</span>(<span class="kw">rnorm</span>(<span class="dv">5</span>) ~<span class="st"> </span><span class="kw">runif</span>(<span class="dv">5</span>)), <span class="dt">permissive =</span> <span class="ot">TRUE</span>)
+<span class="co">#&gt; Warning: The time paramater was not scalar (length equal to 1)</span>
+<span class="co">#&gt; Warning: unhandled input for naptime(): Error in (function (classes, fdef, mtable) : unable to find an inherited method for function 'naptime' for signature '&quot;list&quot;'</span>
+<span class="co">#&gt; NULL</span>
+<span class="kw">options</span>(<span class="dt">naptime.permissive =</span> <span class="ot">TRUE</span>)
+<span class="kw">naptime</span>(<span class="kw">glm</span>(<span class="kw">rnorm</span>(<span class="dv">5</span>) ~<span class="st"> </span><span class="kw">runif</span>(<span class="dv">5</span>)))
+<span class="co">#&gt; Warning: The time paramater was not scalar (length equal to 1)</span>
+
+<span class="co">#&gt; Warning: unhandled input for naptime(): Error in (function (classes, fdef, mtable) : unable to find an inherited method for function 'naptime' for signature '&quot;list&quot;'</span>
+<span class="co">#&gt; NULL</span></code></pre></div>
+<p>If you find a reasonable input-type for which <code>naptime::naptime()</code> doesn’t have a reasonable response, please file <a href="https://github.com/drknexus/naptime/issues">an issue</a> or PR in which you resolve the shortcoming.</p>
 </div>
 </div>
 <div id="how-do-i-get-it" class="section level2">
 <h2>How do I get it?</h2>
+<p>The current version is on CRAN, but you can fetch an early release of the upcoming build directly from github:</p>
 <pre><code>library(devtools)
 install_github(&quot;drknexus/naptime&quot;)
 library(naptime)</code></pre>
@@ -150,7 +183,6 @@ library(naptime)</code></pre>
 <div id="authors-note" class="section level2">
 <h2>Author’s Note</h2>
 <p>The initial draft of this code was written by Timothy Gann under a spec drafted by Russell Pierce. Many improvements and bug fixes to the original code, all packaging, and all tests were written by Russell Pierce. Russell Pierce is the current maintainer and responsible party for this package.</p>
-</div>
 </div>
 
 
