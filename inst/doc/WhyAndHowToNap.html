@@ -12,7 +12,7 @@
 
 <meta name="author" content="Russell S. Pierce &amp; Timothy Gann" />
 
-<meta name="date" content="2017-02-09" />
+<meta name="date" content="2017-02-22" />
 
 <title>naptime: A Flexible and Robust Sys.sleep() Replacement</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">naptime: A Flexible and Robust Sys.sleep() Replacement</h1>
 <h4 class="author"><em>Russell S. Pierce &amp; Timothy Gann</em></h4>
-<h4 class="date"><em>2017-02-09</em></h4>
+<h4 class="date"><em>2017-02-22</em></h4>
 
 
 
@@ -98,7 +98,7 @@ naptime(lubridate::hours(1))</code></pre>
 repeat{
   start_time &lt;- lubridate::now()
   # Do processing
-  naptime(start_time + hours(1))
+  naptime(start_time + lubridate::hours(1))
 }</code></pre>
 </div>
 <div id="how-do-i-use-it" class="section level2">
@@ -138,7 +138,7 @@ repeat{
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">naptime</span>(lubridate::<span class="kw">seconds</span>(<span class="dv">1</span>))
 <span class="co">#&gt; NULL</span></code></pre></div>
 <ul>
-<li>character: A single character string specifying the time at which the nap should stop. The parsing of this character string is left to package:anytime’s anytime() function. Therefore, time zone is assumed to be device local. To force the use of UTC or some other timezone you must <a href="https://github.com/eddelbuettel/anytime/issues/32">override the timezone in your R session</a> prior to loading package:naptime or package:anytime.</li>
+<li>character: Date or date time at which nap should stop formatted as yyyy-mm-dd hh:mm:ss, time zone is assumed to be Sys.timezone() and hh:mm:ss is optional as three formats may be missing, cf. lubridate::ymd_hms()..</li>
 </ul>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">naptime</span>(<span class="kw">as.character</span>(lubridate::<span class="kw">now</span>() +<span class="st"> </span>lubridate::<span class="kw">seconds</span>(<span class="dv">1</span>)))
 <span class="co">#&gt; NULL</span></code></pre></div>

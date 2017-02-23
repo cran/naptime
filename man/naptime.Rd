@@ -3,13 +3,13 @@
 \docType{methods}
 \name{naptime}
 \alias{naptime}
-\alias{naptime,NULL-method}
-\alias{naptime,POSIXct-method}
+\alias{naptime,numeric-method}
 \alias{naptime,Period-method}
-\alias{naptime,character-method}
+\alias{naptime,POSIXct-method}
 \alias{naptime,difftime-method}
 \alias{naptime,logical-method}
-\alias{naptime,numeric-method}
+\alias{naptime,NULL-method}
+\alias{naptime,character-method}
 \title{Safe sleep function}
 \usage{
 naptime(time, permissive = getOption("naptime.permissive",
@@ -49,7 +49,7 @@ Acceptable inputs:
 \itemize{
  \item numeric: time in seconds to nap
  \item POSIXct: time at which the nap should stop  (timezone is respected)
- \item character: Date or date time at which nap should stop. This string is parsed by package:anytime's anytime(). The timezone will therefore default to the system local timezone, but this can be \href{https://github.com/eddelbuettel/anytime/issues/32}{overriden with an environmental variable} prior to the loading of naptime and anytime.
+ \item character: Date or date time at which nap should stop formatted as yyyy-mm-dd hh:mm:ss, time zone is assumed to be Sys.timezone() and hh:mm:ss is optional as three formats may be missing, cf. lubridate::ymd_hms().
  \item Period: time from now at which the nap should stop
  \item difftime: difference in time to nap
  \item logical: If TRUE, nap for default duration, otherwise don't nap.
@@ -67,4 +67,3 @@ naptime(1)
 naptime(difftime("2016-01-01 00:00:01", "2016-01-01 00:00:00"))
 }
 }
-
